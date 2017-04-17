@@ -12,8 +12,8 @@ class GeneratorFieldRelation
     {
         $inputs = explode(',', $relationInput);
 
-        $relation = new self();
-        $relation->type = array_shift($inputs);
+        $relation         = new self();
+        $relation->type   = array_shift($inputs);
         $relation->inputs = $inputs;
 
         return $relation;
@@ -24,33 +24,33 @@ class GeneratorFieldRelation
         $modelName = $this->inputs[0];
         switch ($this->type) {
             case '1t1':
-                $functionName = camel_case($modelName);
-                $relation = 'hasOne';
+                $functionName  = camel_case($modelName);
+                $relation      = 'hasOne';
                 $relationClass = 'HasOne';
                 break;
             case '1tm':
-                $functionName = camel_case(str_plural($modelName));
-                $relation = 'hasMany';
+                $functionName  = camel_case(str_plural($modelName));
+                $relation      = 'hasMany';
                 $relationClass = 'HasMany';
                 break;
             case 'mt1':
-                $functionName = camel_case($modelName);
-                $relation = 'belongsTo';
+                $functionName  = camel_case($modelName);
+                $relation      = 'belongsTo';
                 $relationClass = 'BelongsTo';
                 break;
             case 'mtm':
-                $functionName = camel_case(str_plural($modelName));
-                $relation = 'belongsToMany';
+                $functionName  = camel_case(str_plural($modelName));
+                $relation      = 'belongsToMany';
                 $relationClass = 'BelongsToMany';
                 break;
             case 'hmt':
-                $functionName = camel_case(str_plural($modelName));
-                $relation = 'hasManyThrough';
+                $functionName  = camel_case(str_plural($modelName));
+                $relation      = 'hasManyThrough';
                 $relationClass = 'HasManyThrough';
                 break;
             default:
-                $functionName = '';
-                $relation = '';
+                $functionName  = '';
+                $relation      = '';
                 $relationClass = '';
                 break;
         }
@@ -68,18 +68,36 @@ class GeneratorFieldRelation
 
         $template = get_template('model.relationship', 'laravel-generator');
 
-        $template = str_replace('$RELATIONSHIP_CLASS$', $relationClass, $template);
-        $template = str_replace('$FUNCTION_NAME$', $functionName, $template);
-        $template = str_replace('$RELATION$', $relation, $template);
-        $template = str_replace('$RELATION_MODEL_NAME$', $modelName, $template);
+        $template         = str_replace('$RELATIONSHIP_CLASS$', $relationClass, $template);
+        $template         = str_replace('$FUNCTION_NAME$', $functionName, $template);
+        $template         = str_replace('$RELATION$', $relation, $template);
+        $template         = str_replace('$RELATION_MODEL_NAME$', $modelName, $template);
+        $modelNameLcfirst = lcfirst($modelName);
 
         if (count($this->inputs) > 0) {
             $inputFields = implode("', '", $this->inputs);
-            $inputFields = ", '".$inputFields."'";
+            $inputFields = ", '" . $inputFields . "'";
+            switch ($relation) {
+                case 'belongsTo':
+                    $inputFields = str_replace("'{$modelNameLcfirst}_id'", "$modelName::FIELD_FOREIGN_ID", $inputFields);
+                    $inputFields = str_replace("'id'", 'self::FIELD_ID', $inputFields);
+                    break;
+                case 'belongsToMany':
+                    $joiningTableName = $this->inputs[0];
+                    $inputFields = str_replace("'{$modelNameLcfirst}_id'", "$modelName::FIELD_FOREIGN_ID", $inputFields);
+                    $inputFields = str_replace("'$joiningTableName'", 'self::JOINING_TABLE_' . strtoupper($joiningTableName), $inputFields);
+                    break;
+                default:
+                    break;
+            }
         } else {
-            $inputFields = '';
+            if (in_array($relation, ['hasOne', 'hasMany']))
+                $inputFields = ', self::FIELD_FOREIGN_ID';
+            else
+                $inputFields = '';
         }
 
+//        dump($inputFields);
         $template = str_replace('$INPUT_FIELDS$', $inputFields, $template);
 
         return $template;
