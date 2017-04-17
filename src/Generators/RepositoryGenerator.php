@@ -33,7 +33,7 @@ class RepositoryGenerator extends BaseGenerator
 
         foreach ($this->commandData->fields as $field) {
             if ($field->isSearchable) {
-                $searchables[] = "'".$field->name."'";
+                $searchables[] = "Model::FIELD_" . strtoupper($field->name);
             }
         }
 
