@@ -29,6 +29,7 @@ class ModelGenerator extends BaseGenerator
     private $useRelationModels;
     private $relationships;
     private $joiningTables;
+    private $foreignIds;
 
     /**
      * ModelGenerator constructor.
@@ -45,6 +46,7 @@ class ModelGenerator extends BaseGenerator
         $this->useRelationModels = [];
         $this->relationships     = [];
         $this->joiningTables     = [];
+        $this->foreignIds        = [];
     }
 
     public function generate()
@@ -95,6 +97,7 @@ class ModelGenerator extends BaseGenerator
 
         $templateData = str_replace('$FIELDS$', $this->getFields($fillables), $templateData);
         $templateData = str_replace('$FOREIGN_FIELDS$', $this->getForeignFields($foreignFields), $templateData);
+        $templateData = str_replace('$FOREIGN_IDS$', $this->getForeignIds($foreignFields), $templateData);
 
         $templateData = str_replace('$FILLABLE$', $this->getFillable($fillables), $templateData);
         $templateData = str_replace('$TRANSFORM_ALIASES$', $this->getTransformAliases($fillables), $templateData);
@@ -358,5 +361,14 @@ class ModelGenerator extends BaseGenerator
 
             return 'const FIELD_' . strtoupper($v) . " = '$v'";
         }, $foreignFields)) . ";\n";
+    }
+
+    private function getForeignIds($foreignFields)
+    {
+        return implode(';' . infy_nl_tab(1, 1), array_map(function ($v) {
+            $v = str_replace("'", '', $v);
+
+            return 'self::FIELD_' . strtoupper($v) . ",";
+        }, $foreignFields)) . "\n";
     }
 }
