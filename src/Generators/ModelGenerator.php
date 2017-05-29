@@ -356,11 +356,11 @@ class ModelGenerator extends BaseGenerator
 
     private function getForeignFields($foreignFields)
     {
-        return implode(';' . infy_nl_tab(1, 1), array_map(function ($v) {
+        return implode('' . infy_nl_tab(1, 1), array_map(function ($v) {
             $v = str_replace("'", '', $v);
 
-            return 'const FIELD_' . strtoupper($v) . " = '$v'";
-        }, $foreignFields)) . ";\n";
+            return 'const FIELD_' . strtoupper($v) . " = '$v';";
+        }, $foreignFields)) . "\n";
     }
 
     private function getForeignIds($foreignFields)
