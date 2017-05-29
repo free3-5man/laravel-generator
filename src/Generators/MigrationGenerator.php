@@ -124,10 +124,9 @@ class MigrationGenerator extends BaseGenerator
                 $fields[]       = $migrationText;
 
                 $foreignKeyText   = $field->foreignKeyText;
-                $fieldName        = $field->name;
-                $foreignModelName = ucfirst(substr($fieldName, 0, strpos($fieldName, '_id')));
-                $foreignTableName = str_plural(substr($fieldName, 0, strpos($fieldName, '_id')));
-                $foreignKeyText   = str_replace("'$fieldName'", "Model::FIELD_" . strtoupper($foreignModelName) . '_ID', $foreignKeyText);
+                $foreignTableName = substr($foreignKeyText, strpos($foreignKeyText, "on('") + strlen("on('"), strpos($foreignKeyText, "');") - strpos($foreignKeyText, "on('") - strlen("on('"));
+                $foreignModelName = ucfirst(str_singular($foreignTableName));
+                $foreignKeyText   = str_replace("'$fieldName'", "Model::FIELD_" . strtoupper(ends_with($fieldName, '_id') ? $fieldName : "{$fieldName}_id"), $foreignKeyText);
                 $foreignKeyText   = str_replace("'id'", "$foreignModelName::FIELD_ID", $foreignKeyText);
                 $foreignKeyText   = str_replace("'$foreignTableName'", "$foreignModelName::TABLE_NAME", $foreignKeyText);
                 $foreignKeyText   = str_replace(";", "->onDelete('cascade');", $foreignKeyText);
